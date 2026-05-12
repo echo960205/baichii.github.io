@@ -3,120 +3,115 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>*・°☆.。小玥的好吃好吃口袋名單 *・°☆.。</title>
+<title>小玥的好吃好吃口袋名單</title>
 
 <style>
 
 :root{
-    --cream:#f6f1e7;
-    --bar:#d7c0a5;
-    --deep:#4e3b2f;
-    --light:#fffaf4;
+--cream:#f6f1e7;
+--bar:#d7c0a5;
+--deep:#4e3b2f;
+--light:#fffaf4;
 }
 
 body{
-    margin:0;
-    background:var(--cream);
-    font-family:"PingFang TC", sans-serif;
-    color:var(--deep);
+margin:0;
+background:var(--cream);
+font-family:"PingFang TC", sans-serif;
+color:var(--deep);
 }
 
 header{
-    text-align:center;
-    padding:22px 10px 10px;
+text-align:center;
+padding:22px 10px 10px;
 }
 
 .top{
-    display:flex;
-    justify-content:center;
-    gap:10px;
-    margin:12px;
+display:flex;
+justify-content:center;
+gap:10px;
+margin:12px;
 }
 
 button{
-    border:none;
-    background:var(--bar);
-    color:white;
-    padding:10px 16px;
-    border-radius:999px;
-    cursor:pointer;
+border:none;
+background:var(--bar);
+color:white;
+padding:10px 16px;
+border-radius:999px;
+cursor:pointer;
 }
 
 #form{
-    display:none;
-    background:var(--light);
-    margin:12px;
-    padding:14px;
-    border-radius:24px;
+display:none;
+background:var(--light);
+margin:12px;
+padding:14px;
+border-radius:24px;
 }
 
 input,textarea{
-    width:100%;
-    padding:10px;
-    margin:6px 0;
-    border:none;
-    border-radius:14px;
-    background:#f3e5d3;
+width:100%;
+padding:10px;
+margin:6px 0;
+border:none;
+border-radius:14px;
+background:#f3e5d3;
 }
 
 .card{
-    background:var(--bar);
-    border-radius:24px;
-    margin-bottom:12px;
-    padding:12px;
-    display:flex;
-    justify-content:space-between;
-    position:relative;
+background:var(--bar);
+border-radius:24px;
+margin-bottom:12px;
+padding:12px;
+display:flex;
+justify-content:space-between;
+position:relative;
 }
 
 .img{
-    width:72px;
-    height:72px;
-    object-fit:cover;
-    border-radius:18px;
+width:72px;
+height:72px;
+object-fit:cover;
+border-radius:18px;
 }
 
 .menu{
-    position:absolute;
-    top:8px;
-    right:10px;
-    cursor:pointer;
+position:absolute;
+top:8px;
+right:10px;
+cursor:pointer;
 }
 
 .dropdown{
-    display:none;
-    position:absolute;
-    top:34px;
-    right:10px;
-    background:white;
-    border-radius:14px;
+display:none;
+position:absolute;
+top:34px;
+right:10px;
+background:white;
+border-radius:14px;
+overflow:hidden;
 }
 
 .dropdown div{
-    padding:10px;
-    cursor:pointer;
+padding:10px;
+cursor:pointer;
 }
 
-/* picker */
 #picker{
-    display:none;
-    position:fixed;
-    inset:0;
-    background:rgba(0,0,0,0.25);
-    justify-content:center;
-    align-items:center;
+display:none;
+position:fixed;
+inset:0;
+background:rgba(0,0,0,0.3);
+justify-content:center;
+align-items:center;
 }
 
 .box{
-    background:var(--light);
-    padding:20px;
-    border-radius:20px;
-    text-align:center;
-}
-
-.box button{
-    margin:5px;
+background:var(--light);
+padding:20px;
+border-radius:20px;
+text-align:center;
 }
 
 </style>
@@ -186,8 +181,9 @@ onSnapshot,
 updateDoc
 } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
+/* Firebase */
 const firebaseConfig = {
-apiKey: "AIzaSyDCFwcRu5Stm8dW6X-XTHnLsQPl2AHzshs",
+apiKey: "AIzaSyDCFwcRu5Stm8wD6X-XTHnLsQPl2AHzshs",
 authDomain: "foof-de011.firebaseapp.com",
 projectId: "foof-de011",
 storageBucket: "foof-de011.firebasestorage.app",
@@ -198,20 +194,23 @@ appId: "1:1099059447758:web:38e8fc613758967bce4d9f"
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+/* DOM */
 const form = document.getElementById("form");
 const list = document.getElementById("list");
+const picker = document.getElementById("picker");
 
+/* DATA */
 let data = [];
 let editId = null;
 
-/* realtime */
+/* realtime sync */
 onSnapshot(collection(db,"foods"),(snap)=>{
 data = snap.docs.map(d=>({id:d.id,...d.data()}));
 render();
 });
 
-/* form */
-window.toggleForm=()=>{
+/* toggle */
+window.toggleForm = ()=>{
 form.style.display = form.style.display==="block"?"none":"block";
 };
 
@@ -220,24 +219,26 @@ function getType(){
 return document.querySelector('input[name="type"]:checked')?.value || "未分類";
 }
 
-/* add */
+/* ADD */
 window.add = async ()=>{
 
+try{
+
 const item = {
-name: name.value,
-addr: addr.value,
-memo: memo.value,
-r1: r1.value,
-r2: r2.value,
+name: document.getElementById("name").value,
+addr: document.getElementById("addr").value,
+memo: document.getElementById("memo").value,
+r1: document.getElementById("r1").value,
+r2: document.getElementById("r2").value,
 type: getType(),
 img:""
 };
 
-const file = img.files[0];
+const file = document.getElementById("img").files[0];
 
-const save = async (imgData)=>{
+const save = async (img)=>{
 
-item.img = imgData || "";
+item.img = img || "";
 
 if(editId){
 await updateDoc(doc(db,"foods",editId),item);
@@ -253,27 +254,28 @@ toggleForm();
 
 if(file){
 
-const reader=new FileReader();
+const reader = new FileReader();
 
-reader.onload=e=>{
-const image=new Image();
+reader.onload = e=>{
 
-image.onload=()=>{
+const img = new Image();
 
-const canvas=document.createElement("canvas");
-const ctx=canvas.getContext("2d");
+img.onload = ()=>{
 
-const w=500;
-canvas.width=w;
-canvas.height=image.height*(w/image.width);
+const canvas = document.createElement("canvas");
+const ctx = canvas.getContext("2d");
 
-ctx.drawImage(image,0,0,canvas.width,canvas.height);
+const w = 500;
+canvas.width = w;
+canvas.height = img.height*(w/img.width);
+
+ctx.drawImage(img,0,0,canvas.width,canvas.height);
 
 save(canvas.toDataURL("image/jpeg",0.7));
 
 };
 
-image.src=e.target.result;
+img.src = e.target.result;
 
 };
 
@@ -283,26 +285,31 @@ reader.readAsDataURL(file);
 save("");
 }
 
+}catch(err){
+console.error(err);
+alert("儲存失敗，請看 console");
+}
+
 };
 
 /* delete */
-window.del=async(id)=>{
+window.del = async (id)=>{
 await deleteDoc(doc(db,"foods",id));
 };
 
 /* edit */
-window.edit=(i)=>{
-const it=data[i];
-editId=it.id;
+window.edit = (i)=>{
+const it = data[i];
+editId = it.id;
 
-name.value=it.name;
-addr.value=it.addr;
-memo.value=it.memo;
-r1.value=it.r1;
-r2.value=it.r2;
+document.getElementById("name").value = it.name;
+document.getElementById("addr").value = it.addr;
+document.getElementById("memo").value = it.memo;
+document.getElementById("r1").value = it.r1;
+document.getElementById("r2").value = it.r2;
 
 document.querySelectorAll('input[name="type"]').forEach(r=>{
-r.checked=r.value===it.type;
+r.checked = r.value === it.type;
 });
 
 toggleForm();
@@ -349,7 +356,7 @@ const el=document.getElementById("m"+i);
 el.style.display=el.style.display==="block"?"none":"block";
 };
 
-/* 🍴 吃什麼 */
+/* picker */
 window.openPicker=()=>{
 picker.style.display="flex";
 };
@@ -365,7 +372,7 @@ pool = data.filter(i=>i.type===type);
 }
 
 if(pool.length===0){
-alert("這類沒有店");
+alert("沒有資料");
 return;
 }
 
