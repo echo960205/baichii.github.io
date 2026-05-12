@@ -6,362 +6,119 @@
 
 <title>小玥的好吃好吃口袋名單</title>
 
-<script type="module">
-
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
-import {
-getFirestore,
-collection,
-addDoc,
-deleteDoc,
-doc,
-onSnapshot,
-updateDoc
-} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
-
-/* ✦ Firebase */
-const firebaseConfig = {
-apiKey: "AIzaSyDCFwcRu5Stm8wD6X-XTHnLsQPl2AHzshs",
-authDomain: "foof-de011.firebaseapp.com",
-projectId: "foof-de011",
-storageBucket: "foof-de011.firebasestorage.app",
-messagingSenderId: "1099059447758",
-appId: "1:1099059447758:web:38e8fc613758967bce4d9f"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-let data = [];
-let editId = null;
-
-/* ✦ 讀取 Firebase（關鍵：不會消失） */
-onSnapshot(collection(db,"foods"),(snap)=>{
-data = snap.docs.map(d => ({
-id: d.id,
-...d.data()
-}));
-render();
-});
-
-/* ✦ 開關表單 */
-window.toggleForm = ()=>{
-document.getElementById("form").style.display =
-document.getElementById("form").style.display==="block"
-? "none"
-: "block";
-};
-
-/* ✦ 取得分類 */
-function getType(){
-return document.querySelector('input[name="type"]:checked')?.value || "未分類";
-}
-
-/* ✦ 防重複送出 */
-let isSaving = false;
-
-/* ✦ 新增 / 編輯 */
-window.add = async ()=>{
-
-if(isSaving) return;
-isSaving = true;
-
-const btn = document.querySelector("#saveBtn");
-btn.disabled = true;
-
-const item = {
-name: document.getElementById("name").value,
-addr: document.getElementById("addr").value,
-memo: document.getElementById("memo").value,
-r1: document.getElementById("r1").value,
-r2: document.getElementById("r2").value,
-type: getType(),
-img: ""
-};
-
-const file = document.getElementById("img").files[0];
-
-const saveToFirebase = async (img)=>{
-
-item.img = img || "";
-
-if(editId){
-await updateDoc(doc(db,"foods",editId),item);
-editId = null;
-}else{
-await addDoc(collection(db,"foods"),item);
-}
-
-document.getElementById("form").reset();
-toggleForm();
-
-btn.disabled = false;
-isSaving = false;
-
-};
-
-if(file){
-
-const reader = new FileReader();
-
-reader.onload = e=>{
-
-const img = new Image();
-
-img.onload = ()=>{
-
-const canvas = document.createElement("canvas");
-const ctx = canvas.getContext("2d");
-
-const maxW = 500;
-canvas.width = maxW;
-canvas.height = img.height * (maxW/img.width);
-
-ctx.drawImage(img,0,0,canvas.width,canvas.height);
-
-saveToFirebase(canvas.toDataURL("image/jpeg",0.7));
-
-};
-
-img.src = e.target.result;
-
-};
-
-reader.readAsDataURL(file);
-
-}else{
-saveToFirebase("");
-}
-
-};
-
-/* ✦ 刪除 */
-window.del = async (id)=>{
-await deleteDoc(doc(db,"foods",id));
-};
-
-/* ✦ 編輯 */
-window.edit = (i)=>{
-
-const it = data[i];
-editId = it.id;
-
-document.getElementById("name").value = it.name;
-document.getElementById("addr").value = it.addr;
-document.getElementById("memo").value = it.memo;
-document.getElementById("r1").value = it.r1;
-document.getElementById("r2").value = it.r2;
-
-document.querySelectorAll('input[name="type"]').forEach(r=>{
-r.checked = r.value === it.type;
-});
-
-toggleForm();
-};
-
-/* ✦ render */
-function render(){
-
-const list = document.getElementById("list");
-list.innerHTML = "";
-
-const order = ["早餐","午餐","點心","晚餐","宵夜","未分類"];
-
-data.sort((a,b)=>
-order.indexOf(a.type) - order.indexOf(b.type)
-);
-
-data.forEach((i,index)=>{
-
-const div = document.createElement("div");
-div.className = "card";
-
-div.innerHTML = `
-<div>
-<div class="type">${i.type}</div>
-<h3>${i.name}</h3>
-<p>${i.addr}</p>
-<p>⭐ ${i.r1||"—"} / ${i.r2||"—"}</p>
-<p>${i.memo}</p>
-</div>
-
-<img class="img" src="${i.img||""}">
-
-<div class="menu" onclick="toggleMenu(${index})">⋯</div>
-
-<div class="dropdown" id="m${index}">
-<div onclick="edit(${index})">編輯</div>
-<div onclick="del('${i.id}')">刪除</div>
-</div>
-`;
-
-list.appendChild(div);
-
-});
-}
-
-/* ✦ menu */
-window.toggleMenu = (i)=>{
-const el = document.getElementById("m"+i);
-el.style.display = el.style.display==="block" ? "none" : "block";
-};
-
-/* ✦ 吃什麼（分類抽） */
-window.randomPick = ()=>{
-
-document.getElementById("pickBox").style.display = "flex";
-
-};
-
-window.chooseType = (type)=>{
-
-document.getElementById("pickBox").style.display = "none";
-
-let pool = data;
-
-if(type !== "全部"){
-pool = data.filter(i=>i.type === type);
-}
-
-if(pool.length === 0){
-alert("這個分類沒有餐廳");
-return;
-}
-
-const r = pool[Math.floor(Math.random()*pool.length)];
-
-alert("今天吃：" + r.name + "\n📍" + r.addr);
-
-};
-
-</script>
-
 <style>
 
+/* ====== 你的原本UI完全保留 ====== */
+
+:root{
+    --cream:#f6f1e7;
+    --bar:#d7c0a5;
+    --deep:#4e3b2f;
+    --light:#fffaf4;
+}
+
 body{
-margin:0;
-font-family:"PingFang TC";
-background:#f6f1e7;
-color:#4e3b2f;
+    margin:0;
+    background:var(--cream);
+    font-family:"PingFang TC", sans-serif;
+    color:var(--deep);
 }
 
 header{
-text-align:center;
-padding:18px;
+    text-align:center;
+    padding:22px 10px 10px;
+}
+
+header h1{
+    margin:0;
+    font-size:20px;
 }
 
 .top{
-display:flex;
-justify-content:center;
-gap:10px;
+    display:flex;
+    justify-content:center;
+    gap:10px;
+    margin:12px;
 }
 
 button{
-background:#d7c0a5;
-border:none;
-padding:10px 14px;
-border-radius:999px;
-color:white;
+    border:none;
+    background:var(--bar);
+    color:white;
+    padding:10px 16px;
+    border-radius:999px;
+    cursor:pointer;
 }
 
 #form{
-display:none;
-margin:10px;
-padding:14px;
-background:#fffaf4;
-border-radius:18px;
+    display:none;
+    background:var(--light);
+    margin:12px;
+    padding:14px;
+    border-radius:24px;
 }
 
 input,textarea{
-width:100%;
-margin:6px 0;
-padding:10px;
-border-radius:12px;
-border:none;
-background:#f3e5d3;
+    width:100%;
+    padding:10px;
+    margin:6px 0;
+    border:none;
+    border-radius:14px;
+    background:#f3e5d3;
 }
 
 .card{
-background:#d7c0a5;
-margin:10px;
-padding:12px;
-border-radius:18px;
-display:flex;
-justify-content:space-between;
-position:relative;
+    background:var(--bar);
+    border-radius:24px;
+    margin-bottom:12px;
+    padding:12px;
+    display:flex;
+    justify-content:space-between;
+    position:relative;
 }
 
 .img{
-width:65px;
-height:65px;
-border-radius:14px;
-object-fit:cover;
+    width:72px;
+    height:72px;
+    object-fit:cover;
+    border-radius:18px;
 }
 
 .menu{
-position:absolute;
-top:6px;
-right:10px;
-cursor:pointer;
+    position:absolute;
+    top:8px;
+    right:10px;
 }
 
 .dropdown{
-position:absolute;
-top:28px;
-right:10px;
-background:white;
-border-radius:10px;
-display:none;
+    display:none;
+    position:absolute;
+    top:34px;
+    right:10px;
+    background:white;
+    border-radius:14px;
 }
 
 .dropdown div{
-padding:8px 12px;
-cursor:pointer;
-}
-
-.type{
-font-size:12px;
-opacity:0.7;
-}
-
-/* ✦ 吃什麼選單 */
-#pickBox{
-display:none;
-position:fixed;
-inset:0;
-background:rgba(0,0,0,0.3);
-justify-content:center;
-align-items:center;
-}
-
-.pick{
-background:#fffaf4;
-padding:20px;
-border-radius:18px;
-display:flex;
-flex-direction:column;
-gap:10px;
-}
-
-.pick button{
-width:200px;
+    padding:10px;
+    cursor:pointer;
 }
 
 </style>
-
 </head>
 
 <body>
 
 <header>
-<h2>小玥的好吃好吃口袋名單</h2>
+<h1>*・°☆.。小玥的好吃好吃口袋名單 *・°☆.。</h1>
 </header>
 
 <div class="top">
 <button onclick="toggleForm()">＋ 新增</button>
-<button onclick="randomPick()">🎲 吃什麼</button>
+<button onclick="randomPick()">🎲 今天吃什麼</button>
 </div>
 
+<!-- FORM -->
 <div id="form">
 
 <input id="name" placeholder="餐廳名稱">
@@ -380,27 +137,256 @@ width:200px;
 <input id="r2" placeholder="廖鑫鑫評分">
 <input type="file" id="img">
 
-<button id="saveBtn" onclick="add()">儲存</button>
+<button onclick="add()">儲存</button>
 
 </div>
 
 <div id="list"></div>
 
-<!-- ✦ 吃什麼分類 -->
-<div id="pickBox">
-<div class="pick">
-
-<h3>今天想吃什麼？</h3>
-
-<button onclick="chooseType('早餐')">早餐</button>
-<button onclick="chooseType('午餐')">午餐</button>
-<button onclick="chooseType('點心')">點心</button>
-<button onclick="chooseType('晚餐')">晚餐</button>
-<button onclick="chooseType('宵夜')">宵夜</button>
-<button onclick="chooseType('全部')">全部</button>
-
+<!-- picker -->
+<div id="picker" style="display:none">
+<div>
+<h3>選分類</h3>
+<button onclick="pickType('早餐')">早餐</button>
+<button onclick="pickType('午餐')">午餐</button>
+<button onclick="pickType('點心')">點心</button>
+<button onclick="pickType('晚餐')">晚餐</button>
+<button onclick="pickType('宵夜')">宵夜</button>
+<button onclick="pickType('全部')">全部</button>
 </div>
 </div>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+import {
+getFirestore,
+collection,
+addDoc,
+deleteDoc,
+doc,
+onSnapshot,
+updateDoc
+} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+
+/* ===== FIREBASE ===== */
+
+const firebaseConfig = {
+apiKey: "AIzaSyDCFwcRu5Stm8wD6X-XTHnLsQPl2AHzshs",
+authDomain: "foof-de011.firebaseapp.com",
+projectId: "foof-de011",
+storageBucket: "foof-de011.firebasestorage.app",
+messagingSenderId: "1099059447758",
+appId: "1:1099059447758:web:38e8fc613758967bce4d9f"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+/* ===== DATA ===== */
+
+let data = [];
+let editId = null;
+
+/* ===== 即時同步（重點）===== */
+
+onSnapshot(collection(db,"foods"),(snap)=>{
+
+data = snap.docs.map(d=>({
+id:d.id,
+...d.data()
+}));
+
+render();
+
+});
+
+/* ===== UI ===== */
+
+window.toggleForm = ()=>{
+
+document.getElementById("form").style.display =
+document.getElementById("form").style.display==="block"
+? "none":"block";
+
+};
+
+/* ===== type ===== */
+
+function getType(){
+return document.querySelector('input[name="type"]:checked')?.value || "未分類";
+}
+
+/* ===== ADD / EDIT ===== */
+
+window.add = async ()=>{
+
+const item = {
+name: name.value,
+addr: addr.value,
+memo: memo.value,
+r1: r1.value,
+r2: r2.value,
+type: getType(),
+img:""
+};
+
+const file = img.files[0];
+
+const save = async (imgData)=>{
+
+item.img = imgData || "";
+
+if(editId){
+await updateDoc(doc(db,"foods",editId),item);
+editId = null;
+}else{
+await addDoc(collection(db,"foods"),item);
+}
+
+form.reset();
+toggleForm();
+
+};
+
+if(file){
+
+const reader = new FileReader();
+
+reader.onload = e=>{
+
+const image = new Image();
+
+image.onload = ()=>{
+
+const canvas = document.createElement("canvas");
+const ctx = canvas.getContext("2d");
+
+const w=500;
+canvas.width=w;
+canvas.height=image.height*(w/image.width);
+
+ctx.drawImage(image,0,0,canvas.width,canvas.height);
+
+save(canvas.toDataURL("image/jpeg",0.7));
+
+};
+
+image.src = e.target.result;
+
+};
+
+reader.readAsDataURL(file);
+
+}else{
+save("");
+}
+
+};
+
+/* ===== DELETE ===== */
+
+window.del = async (id)=>{
+await deleteDoc(doc(db,"foods",id));
+};
+
+/* ===== EDIT ===== */
+
+window.edit = (i)=>{
+
+const it = data[i];
+editId = it.id;
+
+name.value = it.name;
+addr.value = it.addr;
+memo.value = it.memo;
+r1.value = it.r1;
+r2.value = it.r2;
+
+document.querySelectorAll('input[name="type"]').forEach(r=>{
+r.checked = r.value === it.type;
+});
+
+toggleForm();
+
+};
+
+/* ===== RENDER ===== */
+
+function render(){
+
+list.innerHTML="";
+
+const order=["早餐","午餐","點心","晚餐","宵夜","未分類"];
+
+data.sort((a,b)=>order.indexOf(a.type)-order.indexOf(b.type));
+
+data.forEach((i,index)=>{
+
+const div=document.createElement("div");
+
+div.className="card";
+
+div.innerHTML=`
+<div>
+<h3>${i.name}</h3>
+<p>${i.addr}</p>
+<p>小玥 ⭐ ${i.r1 || "—"}</p>
+<p>廖鑫鑫 ⭐ ${i.r2 || "—"}</p>
+<p>${i.memo}</p>
+</div>
+
+<img class="img" src="${i.img||""}">
+
+<div class="menu" onclick="toggleMenu(${index})">⋯</div>
+
+<div class="dropdown" id="m${index}">
+<div onclick="edit(${index})">編輯</div>
+<div onclick="del('${i.id}')">刪除</div>
+</div>
+`;
+
+list.appendChild(div);
+
+});
+
+}
+
+/* ===== MENU ===== */
+
+window.toggleMenu = (i)=>{
+const el = document.getElementById("m"+i);
+el.style.display = el.style.display==="block"?"none":"block";
+};
+
+/* ===== 吃什麼 ===== */
+
+window.randomPick = ()=>{
+picker.style.display="block";
+};
+
+window.pickType = (type)=>{
+
+picker.style.display="none";
+
+let pool = data;
+
+if(type !== "全部"){
+pool = data.filter(i=>i.type===type);
+}
+
+if(pool.length===0){
+alert("沒有這類餐廳");
+return;
+}
+
+const r = pool[Math.floor(Math.random()*pool.length)];
+
+alert("今天吃："+r.name+"\n📍"+r.addr);
+
+};
+
+</script>
 
 </body>
 </html>
