@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>小玥的好吃好吃口袋名單</title>
+<title>*・°☆.。小玥的好吃好吃口袋名單 *・°☆.。</title>
 
 <style>
 
@@ -25,11 +25,6 @@ body{
 header{
     text-align:center;
     padding:22px 10px 10px;
-}
-
-header h1{
-    margin:0;
-    font-size:20px;
 }
 
 .top{
@@ -103,6 +98,27 @@ input,textarea{
     cursor:pointer;
 }
 
+/* picker */
+#picker{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.25);
+    justify-content:center;
+    align-items:center;
+}
+
+.box{
+    background:var(--light);
+    padding:20px;
+    border-radius:20px;
+    text-align:center;
+}
+
+.box button{
+    margin:5px;
+}
+
 </style>
 </head>
 
@@ -114,8 +130,10 @@ input,textarea{
 
 <div class="top">
 <button onclick="toggleForm()">＋ 新增</button>
+<button onclick="openPicker()">🍴 吃什麼</button>
 </div>
 
+<!-- FORM -->
 <div id="form">
 
 <input id="name" placeholder="餐廳名稱">
@@ -138,6 +156,21 @@ input,textarea{
 
 </div>
 
+<!-- PICKER -->
+<div id="picker">
+<div class="box">
+<h3>今天想吃哪一餐？</h3>
+
+<button onclick="pick('早餐')">早餐</button>
+<button onclick="pick('午餐')">午餐</button>
+<button onclick="pick('點心')">點心</button>
+<button onclick="pick('晚餐')">晚餐</button>
+<button onclick="pick('宵夜')">宵夜</button>
+<button onclick="pick('全部')">全部</button>
+
+</div>
+</div>
+
 <div id="list"></div>
 
 <script type="module">
@@ -153,10 +186,8 @@ onSnapshot,
 updateDoc
 } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
-/* ===== Firebase ===== */
-
 const firebaseConfig = {
-apiKey: "AIzaSyDCFwcRu5Stm8wD6X-XTHnLsQPl2AHzshs",
+apiKey: "AIzaSyDCFwcRu5Stm8dW6X-XTHnLsQPl2AHzshs",
 authDomain: "foof-de011.firebaseapp.com",
 projectId: "foof-de011",
 storageBucket: "foof-de011.firebasestorage.app",
@@ -167,66 +198,50 @@ appId: "1:1099059447758:web:38e8fc613758967bce4d9f"
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-/* ===== DOM ===== */
-
 const form = document.getElementById("form");
 const list = document.getElementById("list");
-
-/* ===== DATA ===== */
 
 let data = [];
 let editId = null;
 
-/* ===== 即時同步（關鍵） ===== */
-
+/* realtime */
 onSnapshot(collection(db,"foods"),(snap)=>{
-data = snap.docs.map(d=>({
-id:d.id,
-...d.data()
-}));
+data = snap.docs.map(d=>({id:d.id,...d.data()}));
 render();
 });
 
-/* ===== UI ===== */
-
-window.toggleForm = ()=>{
-form.style.display =
-form.style.display==="block"
-? "none"
-: "block";
+/* form */
+window.toggleForm=()=>{
+form.style.display = form.style.display==="block"?"none":"block";
 };
 
-/* ===== type ===== */
-
+/* type */
 function getType(){
 return document.querySelector('input[name="type"]:checked')?.value || "未分類";
 }
 
-/* ===== ADD / EDIT（穩定版） ===== */
-
+/* add */
 window.add = async ()=>{
 
-try{
-
 const item = {
-name: document.getElementById("name").value,
-addr: document.getElementById("addr").value,
-memo: document.getElementById("memo").value,
-r1: document.getElementById("r1").value,
-r2: document.getElementById("r2").value,
+name: name.value,
+addr: addr.value,
+memo: memo.value,
+r1: r1.value,
+r2: r2.value,
 type: getType(),
 img:""
 };
 
-const file = document.getElementById("img").files[0];
+const file = img.files[0];
 
-const save = async (img)=>{
+const save = async (imgData)=>{
 
-item.img = img || "";
+item.img = imgData || "";
 
 if(editId){
 await updateDoc(doc(db,"foods",editId),item);
-editId = null;
+editId=null;
 }else{
 await addDoc(collection(db,"foods"),item);
 }
@@ -238,16 +253,15 @@ toggleForm();
 
 if(file){
 
-const reader = new FileReader();
+const reader=new FileReader();
 
-reader.onload = e=>{
+reader.onload=e=>{
+const image=new Image();
 
-const image = new Image();
+image.onload=()=>{
 
-image.onload = ()=>{
-
-const canvas = document.createElement("canvas");
-const ctx = canvas.getContext("2d");
+const canvas=document.createElement("canvas");
+const ctx=canvas.getContext("2d");
 
 const w=500;
 canvas.width=w;
@@ -259,7 +273,7 @@ save(canvas.toDataURL("image/jpeg",0.7));
 
 };
 
-image.src = e.target.result;
+image.src=e.target.result;
 
 };
 
@@ -269,41 +283,32 @@ reader.readAsDataURL(file);
 save("");
 }
 
-}catch(err){
-console.error("🔥 Firebase error:",err);
-alert("儲存失敗，請打開 Console 看錯誤");
-}
-
 };
 
-/* ===== delete ===== */
-
-window.del = async (id)=>{
+/* delete */
+window.del=async(id)=>{
 await deleteDoc(doc(db,"foods",id));
 };
 
-/* ===== edit ===== */
+/* edit */
+window.edit=(i)=>{
+const it=data[i];
+editId=it.id;
 
-window.edit = (i)=>{
-
-const it = data[i];
-editId = it.id;
-
-document.getElementById("name").value = it.name;
-document.getElementById("addr").value = it.addr;
-document.getElementById("memo").value = it.memo;
-document.getElementById("r1").value = it.r1;
-document.getElementById("r2").value = it.r2;
+name.value=it.name;
+addr.value=it.addr;
+memo.value=it.memo;
+r1.value=it.r1;
+r2.value=it.r2;
 
 document.querySelectorAll('input[name="type"]').forEach(r=>{
-r.checked = r.value === it.type;
+r.checked=r.value===it.type;
 });
 
 toggleForm();
 };
 
-/* ===== render ===== */
-
+/* render */
 function render(){
 
 list.innerHTML="";
@@ -338,11 +343,36 @@ list.appendChild(div);
 
 }
 
-/* ===== menu ===== */
+/* menu */
+window.toggleMenu=(i)=>{
+const el=document.getElementById("m"+i);
+el.style.display=el.style.display==="block"?"none":"block";
+};
 
-window.toggleMenu = (i)=>{
-const el = document.getElementById("m"+i);
-el.style.display = el.style.display==="block"?"none":"block";
+/* 🍴 吃什麼 */
+window.openPicker=()=>{
+picker.style.display="flex";
+};
+
+window.pick=(type)=>{
+
+picker.style.display="none";
+
+let pool = data;
+
+if(type!=="全部"){
+pool = data.filter(i=>i.type===type);
+}
+
+if(pool.length===0){
+alert("這類沒有店");
+return;
+}
+
+const r = pool[Math.floor(Math.random()*pool.length)];
+
+alert("🍴 今天吃："+r.name+"\n📍 "+r.addr);
+
 };
 
 </script>
