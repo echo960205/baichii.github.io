@@ -3,128 +3,117 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>小玥的好吃好吃口袋名單</title>
+
+<title>*・°☆.。小玥的好吃好吃口袋名單 *・°☆.。</title>
 
 <style>
 
 :root{
---cream:#f6f1e7;
---bar:#d7c0a5;
---deep:#4e3b2f;
---light:#fffaf4;
+    --cream:#f6f1e7;
+    --bar:#d7c0a5;
+    --deep:#4e3b2f;
+    --light:#fffaf4;
 }
 
 body{
-margin:0;
-background:var(--cream);
-font-family:"PingFang TC", sans-serif;
-color:var(--deep);
+    margin:0;
+    background:var(--cream);
+    font-family:"PingFang TC", sans-serif;
+    color:var(--deep);
 }
 
 header{
-text-align:center;
-padding:20px;
+    text-align:center;
+    padding:22px 10px 10px;
 }
 
 .top{
-display:flex;
-justify-content:center;
-gap:10px;
-margin:10px;
+    display:flex;
+    justify-content:center;
+    gap:10px;
+    margin:12px;
 }
 
 button{
-border:none;
-background:var(--bar);
-color:white;
-padding:10px 16px;
-border-radius:999px;
-cursor:pointer;
+    border:none;
+    background:var(--bar);
+    color:white;
+    padding:10px 16px;
+    border-radius:999px;
+    cursor:pointer;
 }
 
 #form{
-display:none;
-background:var(--light);
-margin:12px;
-padding:14px;
-border-radius:24px;
+    display:none;
+    background:var(--light);
+    margin:12px;
+    padding:14px;
+    border-radius:24px;
 }
 
 input,textarea{
-width:100%;
-padding:10px;
-margin:6px 0;
-border:none;
-border-radius:14px;
-background:#f3e5d3;
+    width:100%;
+    padding:10px;
+    margin:6px 0;
+    border:none;
+    border-radius:14px;
+    background:#f3e5d3;
 }
 
 .card{
-background:var(--bar);
-border-radius:24px;
-margin-bottom:12px;
-padding:12px;
-display:flex;
-justify-content:space-between;
-position:relative;
+    background:var(--bar);
+    border-radius:24px;
+    margin-bottom:12px;
+    padding:12px;
+    display:flex;
+    justify-content:space-between;
+    position:relative;
 }
 
 .img{
-width:70px;
-height:70px;
-border-radius:16px;
-object-fit:cover;
+    width:72px;
+    height:72px;
+    object-fit:cover;
+    border-radius:18px;
 }
 
 .menu{
-position:absolute;
-top:8px;
-right:10px;
-cursor:pointer;
+    position:absolute;
+    top:8px;
+    right:10px;
+    cursor:pointer;
 }
 
 .dropdown{
-display:none;
-position:absolute;
-top:34px;
-right:10px;
-background:white;
-border-radius:10px;
-overflow:hidden;
+    display:none;
+    position:absolute;
+    top:34px;
+    right:10px;
+    background:white;
+    border-radius:14px;
+    overflow:hidden;
 }
 
 .dropdown div{
-padding:10px;
-cursor:pointer;
+    padding:10px;
+    cursor:pointer;
 }
 
+/* picker */
 #picker{
-display:none;
-position:fixed;
-inset:0;
-background:rgba(0,0,0,0.3);
-justify-content:center;
-align-items:center;
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.3);
+    justify-content:center;
+    align-items:center;
 }
 
 .box{
-background:var(--light);
-padding:20px;
-border-radius:20px;
-text-align:center;
-}
-
-.filter{
-display:flex;
-justify-content:center;
-gap:6px;
-flex-wrap:wrap;
-margin:10px;
-}
-
-.filter button{
-font-size:12px;
-padding:6px 10px;
+    background:var(--light);
+    padding:20px;
+    border-radius:20px;
+    text-align:center;
 }
 
 </style>
@@ -139,16 +128,6 @@ padding:6px 10px;
 <div class="top">
 <button onclick="toggleForm()">＋ 新增</button>
 <button onclick="openPicker()">🍴 吃什麼</button>
-</div>
-
-<!-- filter -->
-<div class="filter">
-<button onclick="setFilter('全部')">全部</button>
-<button onclick="setFilter('早餐')">早餐</button>
-<button onclick="setFilter('午餐')">午餐</button>
-<button onclick="setFilter('點心')">點心</button>
-<button onclick="setFilter('晚餐')">晚餐</button>
-<button onclick="setFilter('宵夜')">宵夜</button>
 </div>
 
 <!-- form -->
@@ -204,9 +183,8 @@ onSnapshot,
 updateDoc
 } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
-/* firebase */
 const firebaseConfig = {
-apiKey: "AIzaSyDCFwcRu5Stm8wD6X-XTHnLsQPl2AHzshs",
+apiKey: "AIzaSyDCFwcRu5Stm8dW6X-XTHnLsQPl2AHzshs",
 authDomain: "foof-de011.firebaseapp.com",
 projectId: "foof-de011",
 storageBucket: "foof-de011.firebasestorage.app",
@@ -217,15 +195,12 @@ appId: "1:1099059447758:web:38e8fc613758967bce4d9f"
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-/* DOM */
 const form = document.getElementById("form");
 const list = document.getElementById("list");
 const picker = document.getElementById("picker");
 
-/* data */
 let data = [];
 let editId = null;
-let filterType = "全部";
 
 /* realtime */
 onSnapshot(collection(db,"foods"),(snap)=>{
@@ -236,12 +211,6 @@ render();
 /* form */
 window.toggleForm = ()=>{
 form.style.display = form.style.display==="block"?"none":"block";
-};
-
-/* filter */
-window.setFilter = (t)=>{
-filterType = t;
-render();
 };
 
 /* type */
@@ -337,23 +306,19 @@ r.checked=r.value===it.type;
 toggleForm();
 };
 
-/* render */
+/* render (修正：加上分類顯示) */
 function render(){
 
 list.innerHTML="";
 
-let show = filterType==="全部"
-? data
-: data.filter(i=>i.type===filterType);
-
-show.forEach((i,index)=>{
+data.forEach((i,index)=>{
 
 const div=document.createElement("div");
 div.className="card";
 
 div.innerHTML=`
 <div>
-<div style="font-size:12px;">🍽 ${i.type}</div>
+<div style="font-size:12px;opacity:0.8;">🍽 ${i.type || "未分類"}</div>
 <h3>${i.name}</h3>
 <p>${i.addr}</p>
 <p>小玥 ⭐ ${i.r1||"—"}</p>
@@ -383,7 +348,7 @@ const el=document.getElementById("m"+i);
 el.style.display=el.style.display==="block"?"none":"block";
 };
 
-/* picker */
+/* picker（修正：依分類抽） */
 window.openPicker=()=>{
 picker.style.display="flex";
 };
@@ -397,13 +362,13 @@ let pool = type==="全部"
 : data.filter(i=>i.type===type);
 
 if(pool.length===0){
-alert("沒有資料");
+alert("這類沒有餐廳");
 return;
 }
 
 const r = pool[Math.floor(Math.random()*pool.length)];
 
-alert("🍴 今天吃："+r.name+"\n📍 "+r.addr);
+alert("🍴 今天吃：" + r.name + "\n📍 " + r.addr);
 
 };
 
