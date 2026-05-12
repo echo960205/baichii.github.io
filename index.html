@@ -270,7 +270,6 @@ function getType(){
 return document.querySelector('input[name="type"]:checked')?.value||"未分類";
 }
 
-/* reset */
 function reset(){
 document.getElementById("name").value="";
 document.getElementById("addr").value="";
@@ -283,7 +282,7 @@ editId=null;
 editImg="";
 }
 
-/* ADD / EDIT（修好：不會重複新增） */
+/* ADD */
 window.add=async()=>{
 
 const item={
@@ -316,20 +315,22 @@ if(file){
 
 const reader=new FileReader();
 reader.onload=e=>{
-const img=new Image();
-img.onload=()=>{
+const image=new Image();
+
+image.onload=()=>{
 const c=document.createElement("canvas");
 const ctx=c.getContext("2d");
 
 const w=500;
 c.width=w;
-c.height=img.height*(w/img.width);
+c.height=image.height*(w/image.width);
 
-ctx.drawImage(img,0,0,c.width,c.height);
+ctx.drawImage(image,0,0,c.width,c.height);
 
 save(c.toDataURL("image/jpeg",0.7));
 };
-img.src=e.target.result;
+
+image.src=e.target.result;
 };
 reader.readAsDataURL(file);
 
@@ -339,11 +340,18 @@ save("");
 
 };
 
-/* edit（修好：圖片不會消失） */
-window.edit=(i)=>{
-const it=data[i];
+/* DELETE */
+window.del=async(id)=>{
+await deleteDoc(doc(db,"foods",id));
+};
+
+/* EDIT（修好：正確資料 + 保留圖片） */
+window.edit=(id)=>{
+
+const it=data.find(d=>d.id===id);
+
 editId=it.id;
-editImg=it.img || "";
+editImg=it.img||"";
 
 document.getElementById("name").value=it.name;
 document.getElementById("addr").value=it.addr;
@@ -358,13 +366,9 @@ r.checked=r.value===it.type;
 form.style.display="block";
 };
 
-/* delete */
-window.del=async(id)=>{
-await deleteDoc(doc(db,"foods",id));
-};
-
-/* render */
+/* RENDER（修好 id 對應） */
 function render(){
+
 list.innerHTML="";
 
 const order=["早餐","午餐","點心","晚餐","宵夜","未分類"];
@@ -373,7 +377,7 @@ const sorted=[...data].sort((a,b)=>
 order.indexOf(a.type||"未分類")-order.indexOf(b.type||"未分類")
 );
 
-sorted.forEach((i,index)=>{
+sorted.forEach((i)=>{
 
 const div=document.createElement("div");
 div.className="card";
@@ -389,10 +393,10 @@ div.innerHTML=`
 
 <img class="img" src="${i.img||""}">
 
-<div class="menu" onclick="toggleMenu(${index})">⋯</div>
+<div class="menu" onclick="toggleMenu('${i.id}')">⋯</div>
 
-<div class="dropdown" id="m${index}">
-<div onclick="edit(${index})">編輯</div>
+<div class="dropdown" id="m${i.id}">
+<div onclick="edit('${i.id}')">編輯</div>
 <div onclick="del('${i.id}')">刪除</div>
 </div>
 `;
@@ -401,14 +405,14 @@ list.appendChild(div);
 });
 }
 
-/* menu */
-window.toggleMenu=(i)=>{
+/* MENU */
+window.toggleMenu=(id)=>{
 document.querySelectorAll(".dropdown").forEach(e=>e.style.display="none");
-const el=document.getElementById("m"+i);
-el.style.display=el.style.display==="block"?"none":"block";
+const el=document.getElementById("m"+id);
+if(el) el.style.display=el.style.display==="block"?"none":"block";
 };
 
-/* picker */
+/* PICKER */
 window.openPicker=()=>{
 picker.style.display="flex";
 };
@@ -426,7 +430,6 @@ if(e.target===picker) closePicker();
 window.startWheel=(type)=>{
 
 let pool=type==="全部"?data:data.filter(i=>i.type===type);
-
 const box=document.getElementById("wheelResult");
 
 if(pool.length===0){
