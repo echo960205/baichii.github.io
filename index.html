@@ -23,14 +23,14 @@ color:var(--deep);
 
 header{
 text-align:center;
-padding:22px 10px 10px;
+padding:20px;
 }
 
 .top{
 display:flex;
 justify-content:center;
 gap:10px;
-margin:12px;
+margin:10px;
 }
 
 button{
@@ -70,10 +70,10 @@ position:relative;
 }
 
 .img{
-width:72px;
-height:72px;
+width:70px;
+height:70px;
+border-radius:16px;
 object-fit:cover;
-border-radius:18px;
 }
 
 .menu{
@@ -89,7 +89,7 @@ position:absolute;
 top:34px;
 right:10px;
 background:white;
-border-radius:14px;
+border-radius:10px;
 overflow:hidden;
 }
 
@@ -114,13 +114,26 @@ border-radius:20px;
 text-align:center;
 }
 
+.filter{
+display:flex;
+justify-content:center;
+gap:6px;
+flex-wrap:wrap;
+margin:10px;
+}
+
+.filter button{
+font-size:12px;
+padding:6px 10px;
+}
+
 </style>
 </head>
 
 <body>
 
 <header>
-<h1>*・°☆.。小玥的好吃好吃口袋名單 *・°☆.。</h1>
+<h2>*・°☆.。小玥的好吃好吃口袋名單 *・°☆.。</h2>
 </header>
 
 <div class="top">
@@ -128,7 +141,17 @@ text-align:center;
 <button onclick="openPicker()">🍴 吃什麼</button>
 </div>
 
-<!-- FORM -->
+<!-- filter -->
+<div class="filter">
+<button onclick="setFilter('全部')">全部</button>
+<button onclick="setFilter('早餐')">早餐</button>
+<button onclick="setFilter('午餐')">午餐</button>
+<button onclick="setFilter('點心')">點心</button>
+<button onclick="setFilter('晚餐')">晚餐</button>
+<button onclick="setFilter('宵夜')">宵夜</button>
+</div>
+
+<!-- form -->
 <div id="form">
 
 <input id="name" placeholder="餐廳名稱">
@@ -151,7 +174,7 @@ text-align:center;
 
 </div>
 
-<!-- PICKER -->
+<!-- picker -->
 <div id="picker">
 <div class="box">
 <h3>今天想吃哪一餐？</h3>
@@ -181,7 +204,7 @@ onSnapshot,
 updateDoc
 } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
-/* Firebase */
+/* firebase */
 const firebaseConfig = {
 apiKey: "AIzaSyDCFwcRu5Stm8wD6X-XTHnLsQPl2AHzshs",
 authDomain: "foof-de011.firebaseapp.com",
@@ -199,19 +222,26 @@ const form = document.getElementById("form");
 const list = document.getElementById("list");
 const picker = document.getElementById("picker");
 
-/* DATA */
+/* data */
 let data = [];
 let editId = null;
+let filterType = "全部";
 
-/* realtime sync */
+/* realtime */
 onSnapshot(collection(db,"foods"),(snap)=>{
 data = snap.docs.map(d=>({id:d.id,...d.data()}));
 render();
 });
 
-/* toggle */
+/* form */
 window.toggleForm = ()=>{
 form.style.display = form.style.display==="block"?"none":"block";
+};
+
+/* filter */
+window.setFilter = (t)=>{
+filterType = t;
+render();
 };
 
 /* type */
@@ -219,26 +249,24 @@ function getType(){
 return document.querySelector('input[name="type"]:checked')?.value || "未分類";
 }
 
-/* ADD */
+/* add */
 window.add = async ()=>{
 
-try{
-
 const item = {
-name: document.getElementById("name").value,
-addr: document.getElementById("addr").value,
-memo: document.getElementById("memo").value,
-r1: document.getElementById("r1").value,
-r2: document.getElementById("r2").value,
-type: getType(),
+name:name.value,
+addr:addr.value,
+memo:memo.value,
+r1:r1.value,
+r2:r2.value,
+type:getType(),
 img:""
 };
 
-const file = document.getElementById("img").files[0];
+const file = img.files[0];
 
-const save = async (img)=>{
+const save = async (imgData)=>{
 
-item.img = img || "";
+item.img = imgData || "";
 
 if(editId){
 await updateDoc(doc(db,"foods",editId),item);
@@ -254,28 +282,27 @@ toggleForm();
 
 if(file){
 
-const reader = new FileReader();
+const reader=new FileReader();
 
-reader.onload = e=>{
+reader.onload=e=>{
+const image=new Image();
 
-const img = new Image();
+image.onload=()=>{
 
-img.onload = ()=>{
+const canvas=document.createElement("canvas");
+const ctx=canvas.getContext("2d");
 
-const canvas = document.createElement("canvas");
-const ctx = canvas.getContext("2d");
+const w=500;
+canvas.width=w;
+canvas.height=image.height*(w/image.width);
 
-const w = 500;
-canvas.width = w;
-canvas.height = img.height*(w/img.width);
-
-ctx.drawImage(img,0,0,canvas.width,canvas.height);
+ctx.drawImage(image,0,0,canvas.width,canvas.height);
 
 save(canvas.toDataURL("image/jpeg",0.7));
 
 };
 
-img.src = e.target.result;
+image.src=e.target.result;
 
 };
 
@@ -285,31 +312,26 @@ reader.readAsDataURL(file);
 save("");
 }
 
-}catch(err){
-console.error(err);
-alert("儲存失敗，請看 console");
-}
-
 };
 
 /* delete */
-window.del = async (id)=>{
+window.del=async(id)=>{
 await deleteDoc(doc(db,"foods",id));
 };
 
 /* edit */
-window.edit = (i)=>{
-const it = data[i];
-editId = it.id;
+window.edit=(i)=>{
+const it=data[i];
+editId=it.id;
 
-document.getElementById("name").value = it.name;
-document.getElementById("addr").value = it.addr;
-document.getElementById("memo").value = it.memo;
-document.getElementById("r1").value = it.r1;
-document.getElementById("r2").value = it.r2;
+name.value=it.name;
+addr.value=it.addr;
+memo.value=it.memo;
+r1.value=it.r1;
+r2.value=it.r2;
 
 document.querySelectorAll('input[name="type"]').forEach(r=>{
-r.checked = r.value === it.type;
+r.checked=r.value===it.type;
 });
 
 toggleForm();
@@ -320,13 +342,18 @@ function render(){
 
 list.innerHTML="";
 
-data.forEach((i,index)=>{
+let show = filterType==="全部"
+? data
+: data.filter(i=>i.type===filterType);
+
+show.forEach((i,index)=>{
 
 const div=document.createElement("div");
 div.className="card";
 
 div.innerHTML=`
 <div>
+<div style="font-size:12px;">🍽 ${i.type}</div>
 <h3>${i.name}</h3>
 <p>${i.addr}</p>
 <p>小玥 ⭐ ${i.r1||"—"}</p>
@@ -365,11 +392,9 @@ window.pick=(type)=>{
 
 picker.style.display="none";
 
-let pool = data;
-
-if(type!=="全部"){
-pool = data.filter(i=>i.type===type);
-}
+let pool = type==="全部"
+? data
+: data.filter(i=>i.type===type);
 
 if(pool.length===0){
 alert("沒有資料");
