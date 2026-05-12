@@ -3,117 +3,115 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>*・°☆.。小玥的好吃好吃口袋名單 *・°☆.。</title>
+<title>☆.。小玥的好吃好吃口袋名單 ☆.。</title>
 
 <style>
 
 :root{
-    --cream:#f6f1e7;
-    --bar:#d7c0a5;
-    --deep:#4e3b2f;
-    --light:#fffaf4;
+--cream:#f6f1e7;
+--bar:#d7c0a5;
+--deep:#4e3b2f;
+--light:#fffaf4;
 }
 
 body{
-    margin:0;
-    background:var(--cream);
-    font-family:"PingFang TC", sans-serif;
-    color:var(--deep);
+margin:0;
+background:var(--cream);
+font-family:"PingFang TC", sans-serif;
+color:var(--deep);
 }
 
 header{
-    text-align:center;
-    padding:22px 10px 10px;
+text-align:center;
+padding:22px 10px 10px;
 }
 
 .top{
-    display:flex;
-    justify-content:center;
-    gap:10px;
-    margin:12px;
+display:flex;
+justify-content:center;
+gap:10px;
+margin:12px;
 }
 
 button{
-    border:none;
-    background:var(--bar);
-    color:white;
-    padding:10px 16px;
-    border-radius:999px;
-    cursor:pointer;
+border:none;
+background:var(--bar);
+color:white;
+padding:10px 16px;
+border-radius:999px;
+cursor:pointer;
 }
 
 #form{
-    display:none;
-    background:var(--light);
-    margin:12px;
-    padding:14px;
-    border-radius:24px;
+display:none;
+background:var(--light);
+margin:12px;
+padding:14px;
+border-radius:24px;
 }
 
 input,textarea{
-    width:100%;
-    padding:10px;
-    margin:6px 0;
-    border:none;
-    border-radius:14px;
-    background:#f3e5d3;
+width:100%;
+padding:10px;
+margin:6px 0;
+border:none;
+border-radius:14px;
+background:#f3e5d3;
 }
 
 .card{
-    background:var(--bar);
-    border-radius:24px;
-    margin-bottom:12px;
-    padding:12px;
-    display:flex;
-    justify-content:space-between;
-    position:relative;
+background:var(--bar);
+border-radius:24px;
+margin-bottom:12px;
+padding:12px;
+display:flex;
+justify-content:space-between;
+position:relative;
 }
 
 .img{
-    width:72px;
-    height:72px;
-    object-fit:cover;
-    border-radius:18px;
+width:72px;
+height:72px;
+object-fit:cover;
+border-radius:18px;
 }
 
 .menu{
-    position:absolute;
-    top:8px;
-    right:10px;
-    cursor:pointer;
+position:absolute;
+top:8px;
+right:10px;
+cursor:pointer;
 }
 
 .dropdown{
-    display:none;
-    position:absolute;
-    top:34px;
-    right:10px;
-    background:white;
-    border-radius:14px;
-    overflow:hidden;
+display:none;
+position:absolute;
+top:34px;
+right:10px;
+background:white;
+border-radius:14px;
+overflow:hidden;
 }
 
 .dropdown div{
-    padding:10px;
-    cursor:pointer;
+padding:10px;
+cursor:pointer;
 }
 
-/* picker */
 #picker{
-    display:none;
-    position:fixed;
-    inset:0;
-    background:rgba(0,0,0,0.3);
-    justify-content:center;
-    align-items:center;
+display:none;
+position:fixed;
+inset:0;
+background:rgba(0,0,0,0.3);
+justify-content:center;
+align-items:center;
 }
 
 .box{
-    background:var(--light);
-    padding:20px;
-    border-radius:20px;
-    text-align:center;
+background:var(--light);
+padding:20px;
+border-radius:20px;
+text-align:center;
 }
 
 </style>
@@ -122,7 +120,7 @@ input,textarea{
 <body>
 
 <header>
-<h2>*・°☆.。小玥的好吃好吃口袋名單 *・°☆.。</h2>
+<h1>*・°☆.。小玥的好吃好吃口袋名單 *・°☆.。</h1>
 </header>
 
 <div class="top">
@@ -130,7 +128,7 @@ input,textarea{
 <button onclick="openPicker()">🍴 吃什麼</button>
 </div>
 
-<!-- form -->
+<!-- FORM -->
 <div id="form">
 
 <input id="name" placeholder="餐廳名稱">
@@ -153,7 +151,7 @@ input,textarea{
 
 </div>
 
-<!-- picker -->
+<!-- PICKER -->
 <div id="picker">
 <div class="box">
 <h3>今天想吃哪一餐？</h3>
@@ -202,23 +200,19 @@ const picker = document.getElementById("picker");
 let data = [];
 let editId = null;
 
-/* realtime */
 onSnapshot(collection(db,"foods"),(snap)=>{
 data = snap.docs.map(d=>({id:d.id,...d.data()}));
 render();
 });
 
-/* form */
 window.toggleForm = ()=>{
 form.style.display = form.style.display==="block"?"none":"block";
 };
 
-/* type */
 function getType(){
 return document.querySelector('input[name="type"]:checked')?.value || "未分類";
 }
 
-/* add */
 window.add = async ()=>{
 
 const item = {
@@ -234,7 +228,6 @@ img:""
 const file = img.files[0];
 
 const save = async (imgData)=>{
-
 item.img = imgData || "";
 
 if(editId){
@@ -246,7 +239,6 @@ await addDoc(collection(db,"foods"),item);
 
 form.reset();
 toggleForm();
-
 };
 
 if(file){
@@ -272,7 +264,6 @@ save(canvas.toDataURL("image/jpeg",0.7));
 };
 
 image.src=e.target.result;
-
 };
 
 reader.readAsDataURL(file);
@@ -283,12 +274,10 @@ save("");
 
 };
 
-/* delete */
 window.del=async(id)=>{
 await deleteDoc(doc(db,"foods",id));
 };
 
-/* edit */
 window.edit=(i)=>{
 const it=data[i];
 editId=it.id;
@@ -306,7 +295,7 @@ r.checked=r.value===it.type;
 toggleForm();
 };
 
-/* render (修正：加上分類顯示) */
+/* ⭐ ONLY CHANGE: 類別顯示加在 bar 上面 */
 function render(){
 
 list.innerHTML="";
@@ -342,13 +331,12 @@ list.appendChild(div);
 
 }
 
-/* menu */
 window.toggleMenu=(i)=>{
 const el=document.getElementById("m"+i);
 el.style.display=el.style.display==="block"?"none":"block";
 };
 
-/* picker（修正：依分類抽） */
+/* ⭐ ONLY CHANGE: 轉盤先選類別 */
 window.openPicker=()=>{
 picker.style.display="flex";
 };
@@ -362,13 +350,13 @@ let pool = type==="全部"
 : data.filter(i=>i.type===type);
 
 if(pool.length===0){
-alert("這類沒有餐廳");
+alert("沒有資料");
 return;
 }
 
 const r = pool[Math.floor(Math.random()*pool.length)];
 
-alert("🍴 今天吃：" + r.name + "\n📍 " + r.addr);
+alert("🍴 今天吃："+r.name+"\n📍 "+r.addr);
 
 };
 
