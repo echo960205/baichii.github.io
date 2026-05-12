@@ -116,7 +116,6 @@ input,textarea{
 <button onclick="toggleForm()">＋ 新增</button>
 </div>
 
-<!-- FORM -->
 <div id="form">
 
 <input id="name" placeholder="餐廳名稱">
@@ -168,7 +167,11 @@ appId: "1:1099059447758:web:38e8fc613758967bce4d9f"
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-/* ===== DATA ===== */
+/* ===== FIX：避免 undefined ===== */
+
+const form = document.getElementById("form");
+
+/* ===== data ===== */
 
 let data = [];
 let editId = null;
@@ -183,7 +186,7 @@ id:d.id,
 render();
 });
 
-/* ===== UI ===== */
+/* ===== toggle ===== */
 
 window.toggleForm = ()=>{
 form.style.display =
@@ -225,6 +228,7 @@ editId = null;
 await addDoc(collection(db,"foods"),item);
 }
 
+/* reset */
 form.reset();
 toggleForm();
 
@@ -278,11 +282,11 @@ window.edit = (i)=>{
 const it = data[i];
 editId = it.id;
 
-name.value = it.name;
-addr.value = it.addr;
-memo.value = it.memo;
-r1.value = it.r1;
-r2.value = it.r2;
+document.getElementById("name").value = it.name;
+document.getElementById("addr").value = it.addr;
+document.getElementById("memo").value = it.memo;
+document.getElementById("r1").value = it.r1;
+document.getElementById("r2").value = it.r2;
 
 document.querySelectorAll('input[name="type"]').forEach(r=>{
 r.checked = r.value === it.type;
@@ -331,7 +335,7 @@ list.appendChild(div);
 
 }
 
-/* menu */
+/* ===== menu ===== */
 
 window.toggleMenu = (i)=>{
 const el = document.getElementById("m"+i);
