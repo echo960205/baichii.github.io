@@ -282,7 +282,7 @@ editId=null;
 editImg="";
 }
 
-/* ADD */
+/* ADD / EDIT */
 window.add=async()=>{
 
 const item={
@@ -345,7 +345,7 @@ window.del=async(id)=>{
 await deleteDoc(doc(db,"foods",id));
 };
 
-/* EDIT（修好：正確資料 + 保留圖片） */
+/* EDIT（修正：正確資料 + 圖片保留） */
 window.edit=(id)=>{
 
 const it=data.find(d=>d.id===id);
@@ -366,7 +366,7 @@ r.checked=r.value===it.type;
 form.style.display="block";
 };
 
-/* RENDER（修好 id 對應） */
+/* RENDER（保留全部 UI + emoji + 評分） */
 function render(){
 
 list.innerHTML="";
@@ -384,10 +384,15 @@ div.className="card";
 
 div.innerHTML=`
 <div>
-<div style="font-size:12px;opacity:0.7">${i.type||"未分類"}</div>
+<div style="font-size:12px;opacity:0.7">🍽️ ${i.type||"未分類"}</div>
+
 <h3>${i.name}</h3>
+
 <p>${i.addr}</p>
-<p>⭐ ${i.r1||"—"} / ${i.r2||"—"}</p>
+
+<p>⭐ 小玥：${i.r1||"—"}</p>
+<p>⭐ 廖鑫鑫：${i.r2||"—"}</p>
+
 <p>${i.memo}</p>
 </div>
 
@@ -426,7 +431,7 @@ window.outsideClose=(e)=>{
 if(e.target===picker) closePicker();
 };
 
-/* 🎡 轉盤 */
+/* 🎡 WHEEL */
 window.startWheel=(type)=>{
 
 let pool=type==="全部"?data:data.filter(i=>i.type===type);
