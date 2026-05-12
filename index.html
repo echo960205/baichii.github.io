@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>小玥的好吃好吃口袋名單</title>
+<title>☆.。小玥的好吃好吃口袋名單☆.。</title>
 
 <style>
 
@@ -194,16 +194,14 @@ appId: "1:1099059447758:web:38e8fc613758967bce4d9f"
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-/* DOM */
 const form = document.getElementById("form");
 const list = document.getElementById("list");
 const picker = document.getElementById("picker");
 
-/* DATA */
 let data = [];
 let editId = null;
 
-/* realtime sync */
+/* realtime */
 onSnapshot(collection(db,"foods"),(snap)=>{
 data = snap.docs.map(d=>({id:d.id,...d.data()}));
 render();
@@ -219,10 +217,26 @@ function getType(){
 return document.querySelector('input[name="type"]:checked')?.value || "未分類";
 }
 
+/* ⭐ NEW：完整重置表單（重點修正） */
+function resetForm(){
+
+document.getElementById("name").value = "";
+document.getElementById("addr").value = "";
+document.getElementById("memo").value = "";
+document.getElementById("r1").value = "";
+document.getElementById("r2").value = "";
+document.getElementById("img").value = "";
+
+document.querySelectorAll('input[name="type"]').forEach(r=>{
+r.checked = false;
+});
+
+editId = null;
+
+}
+
 /* ADD */
 window.add = async ()=>{
-
-try{
 
 const item = {
 name: document.getElementById("name").value,
@@ -242,12 +256,12 @@ item.img = img || "";
 
 if(editId){
 await updateDoc(doc(db,"foods",editId),item);
-editId=null;
 }else{
 await addDoc(collection(db,"foods"),item);
 }
 
-form.reset();
+/* ⭐ 修正點：完全重置 */
+resetForm();
 toggleForm();
 
 };
@@ -283,11 +297,6 @@ reader.readAsDataURL(file);
 
 }else{
 save("");
-}
-
-}catch(err){
-console.error(err);
-alert("儲存失敗，請看 console");
 }
 
 };
@@ -327,6 +336,7 @@ div.className="card";
 
 div.innerHTML=`
 <div>
+<div style="font-size:12px;opacity:0.8;">🍽 ${i.type || "未分類"}</div>
 <h3>${i.name}</h3>
 <p>${i.addr}</p>
 <p>小玥 ⭐ ${i.r1||"—"}</p>
@@ -365,11 +375,9 @@ window.pick=(type)=>{
 
 picker.style.display="none";
 
-let pool = data;
-
-if(type!=="全部"){
-pool = data.filter(i=>i.type===type);
-}
+let pool = type==="全部"
+? data
+: data.filter(i=>i.type===type);
 
 if(pool.length===0){
 alert("沒有資料");
