@@ -167,16 +167,17 @@ appId: "1:1099059447758:web:38e8fc613758967bce4d9f"
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-/* ===== FIX：避免 undefined ===== */
+/* ===== DOM ===== */
 
 const form = document.getElementById("form");
+const list = document.getElementById("list");
 
-/* ===== data ===== */
+/* ===== DATA ===== */
 
 let data = [];
 let editId = null;
 
-/* ===== 即時同步 ===== */
+/* ===== 即時同步（關鍵） ===== */
 
 onSnapshot(collection(db,"foods"),(snap)=>{
 data = snap.docs.map(d=>({
@@ -186,7 +187,7 @@ id:d.id,
 render();
 });
 
-/* ===== toggle ===== */
+/* ===== UI ===== */
 
 window.toggleForm = ()=>{
 form.style.display =
@@ -201,9 +202,11 @@ function getType(){
 return document.querySelector('input[name="type"]:checked')?.value || "未分類";
 }
 
-/* ===== add / edit ===== */
+/* ===== ADD / EDIT（穩定版） ===== */
 
 window.add = async ()=>{
+
+try{
 
 const item = {
 name: document.getElementById("name").value,
@@ -228,7 +231,6 @@ editId = null;
 await addDoc(collection(db,"foods"),item);
 }
 
-/* reset */
 form.reset();
 toggleForm();
 
@@ -247,9 +249,9 @@ image.onload = ()=>{
 const canvas = document.createElement("canvas");
 const ctx = canvas.getContext("2d");
 
-const w = 500;
-canvas.width = w;
-canvas.height = image.height*(w/image.width);
+const w=500;
+canvas.width=w;
+canvas.height=image.height*(w/image.width);
 
 ctx.drawImage(image,0,0,canvas.width,canvas.height);
 
@@ -265,6 +267,11 @@ reader.readAsDataURL(file);
 
 }else{
 save("");
+}
+
+}catch(err){
+console.error("🔥 Firebase error:",err);
+alert("儲存失敗，請打開 Console 看錯誤");
 }
 
 };
@@ -300,10 +307,6 @@ toggleForm();
 function render(){
 
 list.innerHTML="";
-
-const order=["早餐","午餐","點心","晚餐","宵夜","未分類"];
-
-data.sort((a,b)=>order.indexOf(a.type)-order.indexOf(b.type));
 
 data.forEach((i,index)=>{
 
