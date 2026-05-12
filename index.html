@@ -513,7 +513,28 @@ function render(){
 
 list.innerHTML="";
 
-data.forEach((i,index)=>{
+/* 排序 */
+
+const order = [
+"早餐",
+"午餐",
+"點心",
+"晚餐",
+"宵夜",
+"未分類"
+];
+
+const sortedData = [...data].sort((a,b)=>{
+
+return (
+order.indexOf(a.type || "未分類")
+-
+order.indexOf(b.type || "未分類")
+);
+
+});
+
+sortedData.forEach((i,index)=>{
 
 const div =
 document.createElement("div");
