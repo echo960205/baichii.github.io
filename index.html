@@ -61,7 +61,8 @@ padding:14px;
 border-radius:24px;
 }
 
-input,textarea{
+input,
+textarea{
 width:100%;
 padding:10px;
 margin:6px 0;
@@ -71,7 +72,9 @@ background:#f3e5d3;
 box-sizing:border-box;
 }
 
-textarea{resize:none;}
+textarea{
+resize:none;
+}
 
 .card{
 background:var(--bar);
@@ -80,8 +83,27 @@ margin:12px;
 padding:12px;
 display:flex;
 justify-content:space-between;
-gap:12px;
+align-items:flex-start;
 position:relative;
+gap:12px;
+}
+
+.info{flex:1;}
+
+.type{
+font-size:12px;
+opacity:0.8;
+margin-bottom:4px;
+}
+
+.info h3{
+margin:0;
+font-size:18px;
+}
+
+.info p{
+margin:4px 0;
+font-size:14px;
 }
 
 .img{
@@ -97,6 +119,7 @@ position:absolute;
 top:8px;
 right:10px;
 cursor:pointer;
+font-size:18px;
 }
 
 .dropdown{
@@ -107,15 +130,22 @@ right:10px;
 background:white;
 border-radius:14px;
 overflow:hidden;
+box-shadow:0 4px 10px rgba(0,0,0,0.1);
 z-index:10;
 }
 
 .dropdown div{
-padding:10px;
+padding:10px 14px;
 cursor:pointer;
+font-size:14px;
+}
+
+.dropdown div:hover{
+background:#f3e5d3;
 }
 
 /* picker */
+
 #picker{
 display:none;
 position:fixed;
@@ -136,7 +166,8 @@ max-width:320px;
 position:relative;
 }
 
-#closePicker{
+/* ✕ 關閉鍵（新增） */
+#closeBtn{
 position:absolute;
 top:10px;
 right:12px;
@@ -153,8 +184,9 @@ margin-top:14px;
 }
 
 #wheelResult{
-margin-top:12px;
-min-height:40px;
+margin-top:15px;
+font-size:14px;
+min-height:20px;
 }
 
 </style>
@@ -195,11 +227,12 @@ min-height:40px;
 </div>
 
 <!-- PICKER -->
-<div id="picker" onclick="outsideClose(event)">
+<div id="picker">
 
-<div class="box" onclick="event.stopPropagation()">
+<div class="box">
 
-<div id="closePicker" onclick="closePicker()">✕</div>
+<!-- ✕（新增） -->
+<div id="closeBtn" onclick="closePicker()">✕</div>
 
 <h3>今天想吃哪一餐？</h3>
 
@@ -224,7 +257,9 @@ min-height:40px;
 
 <script type="module">
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+import { initializeApp }
+from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+
 import {
 getFirestore,
 collection,
@@ -233,8 +268,10 @@ deleteDoc,
 doc,
 onSnapshot,
 updateDoc
-} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+}
+from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
+/* Firebase */
 const firebaseConfig = {
 apiKey: "AIzaSyDCFwcRu5Stm8wD6X-XTHnLsQPl2AHzshs",
 authDomain: "foof-de011.firebaseapp.com",
@@ -253,7 +290,7 @@ const picker=document.getElementById("picker");
 
 let data=[];
 let editId=null;
-let editImg="";
+let editImg="";   // ✅ 修正1：記住舊圖片
 
 /* realtime */
 onSnapshot(collection(db,"foods"),(snap)=>{
@@ -267,10 +304,10 @@ form.style.display=form.style.display==="block"?"none":"block";
 };
 
 function getType(){
-return document.querySelector('input[name="type"]:checked')?.value||"未分類";
+return document.querySelector('input[name="type"]:checked')?.value || "未分類";
 }
 
-function reset(){
+function resetForm(){
 document.getElementById("name").value="";
 document.getElementById("addr").value="";
 document.getElementById("memo").value="";
@@ -279,11 +316,11 @@ document.getElementById("r2").value="";
 document.getElementById("img").value="";
 document.querySelectorAll('input[name="type"]').forEach(r=>r.checked=false);
 editId=null;
-editImg="";
+editImg=""; // ✅ 清空
 }
 
-/* ADD / EDIT */
-window.add=async()=>{
+/* add */
+window.add=async ()=>{
 
 const item={
 name:document.getElementById("name").value,
@@ -292,14 +329,15 @@ memo:document.getElementById("memo").value,
 r1:document.getElementById("r1").value,
 r2:document.getElementById("r2").value,
 type:getType(),
-img:editImg
+img:""
 };
 
 const file=document.getElementById("img").files[0];
 
 const save=async(img)=>{
 
-item.img=img||editImg||"";
+// ✅ 修正2：編輯時保留舊圖
+item.img = img || editImg || "";
 
 if(editId){
 await updateDoc(doc(db,"foods",editId),item);
@@ -307,7 +345,7 @@ await updateDoc(doc(db,"foods",editId),item);
 await addDoc(collection(db,"foods"),item);
 }
 
-reset();
+resetForm();
 form.style.display="none";
 };
 
@@ -318,20 +356,22 @@ reader.onload=e=>{
 const image=new Image();
 
 image.onload=()=>{
-const c=document.createElement("canvas");
-const ctx=c.getContext("2d");
+
+const canvas=document.createElement("canvas");
+const ctx=canvas.getContext("2d");
 
 const w=500;
-c.width=w;
-c.height=image.height*(w/image.width);
+canvas.width=w;
+canvas.height=image.height*(w/image.width);
 
-ctx.drawImage(image,0,0,c.width,c.height);
+ctx.drawImage(image,0,0,canvas.width,canvas.height);
 
-save(c.toDataURL("image/jpeg",0.7));
+save(canvas.toDataURL("image/jpeg",0.7));
 };
 
 image.src=e.target.result;
 };
+
 reader.readAsDataURL(file);
 
 }else{
@@ -340,18 +380,17 @@ save("");
 
 };
 
-/* DELETE */
+/* delete */
 window.del=async(id)=>{
 await deleteDoc(doc(db,"foods",id));
 };
 
-/* EDIT（修正：正確資料 + 圖片保留） */
-window.edit=(id)=>{
-
-const it=data.find(d=>d.id===id);
-
+/* edit */
+window.edit=(i)=>{
+const it=data[i];
 editId=it.id;
-editImg=it.img||"";
+
+editImg = it.img || ""; // ✅ 修正：保留圖片
 
 document.getElementById("name").value=it.name;
 document.getElementById("addr").value=it.addr;
@@ -366,7 +405,7 @@ r.checked=r.value===it.type;
 form.style.display="block";
 };
 
-/* RENDER（保留全部 UI + emoji + 評分） */
+/* render */
 function render(){
 
 list.innerHTML="";
@@ -377,31 +416,34 @@ const sorted=[...data].sort((a,b)=>
 order.indexOf(a.type||"未分類")-order.indexOf(b.type||"未分類")
 );
 
-sorted.forEach((i)=>{
+sorted.forEach((i,index)=>{
 
 const div=document.createElement("div");
 div.className="card";
 
 div.innerHTML=`
-<div>
-<div style="font-size:12px;opacity:0.7">🍽️ ${i.type||"未分類"}</div>
+<div class="info">
+
+<div class="type">🍽 ${i.type||"未分類"}</div>
 
 <h3>${i.name}</h3>
 
-<p>${i.addr}</p>
+<p>📍 ${i.addr}</p>
 
 <p>⭐ 小玥：${i.r1||"—"}</p>
+
 <p>⭐ 廖鑫鑫：${i.r2||"—"}</p>
 
 <p>${i.memo}</p>
+
 </div>
 
 <img class="img" src="${i.img||""}">
 
-<div class="menu" onclick="toggleMenu('${i.id}')">⋯</div>
+<div class="menu" onclick="toggleMenu(${index})">⋯</div>
 
-<div class="dropdown" id="m${i.id}">
-<div onclick="edit('${i.id}')">編輯</div>
+<div class="dropdown" id="m${index}">
+<div onclick="edit(${index})">編輯</div>
 <div onclick="del('${i.id}')">刪除</div>
 </div>
 `;
@@ -410,29 +452,35 @@ list.appendChild(div);
 });
 }
 
-/* MENU */
-window.toggleMenu=(id)=>{
+/* menu */
+window.toggleMenu=(i)=>{
 document.querySelectorAll(".dropdown").forEach(e=>e.style.display="none");
-const el=document.getElementById("m"+id);
-if(el) el.style.display=el.style.display==="block"?"none":"block";
+const el=document.getElementById("m"+i);
+el.style.display=el.style.display==="block"?"none":"block";
 };
 
-/* PICKER */
+/* picker */
 window.openPicker=()=>{
 picker.style.display="flex";
 };
 
+/* ✕ 關閉（新增） */
 window.closePicker=()=>{
 picker.style.display="none";
 document.getElementById("wheelResult").innerHTML="";
 };
 
-window.outsideClose=(e)=>{
-if(e.target===picker) closePicker();
+/* click outside */
+window.onclick=(e)=>{
+if(e.target===picker){
+closePicker();
+}
 };
 
-/* 🎡 WHEEL */
+/* 🎡 轉盤 */
 window.startWheel=(type)=>{
+
+picker.style.display="flex";
 
 let pool=type==="全部"?data:data.filter(i=>i.type===type);
 const box=document.getElementById("wheelResult");
@@ -457,8 +505,10 @@ clearInterval(timer);
 const final=pool[Math.floor(Math.random()*pool.length)];
 
 box.innerHTML=`
-🎉 <b>${final.name}</b><br>
+<div style="font-size:16px;">
+🎉 今天吃：<b>${final.name}</b><br>
 📍 ${final.addr}
+</div>
 `;
 }
 
