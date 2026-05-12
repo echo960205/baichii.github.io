@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
+
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>☆.。小玥的好吃好吃口袋名單☆.。</title>
+
+<title>*・°☆.。小玥的好吃好吃口袋名單 *・°☆.。</title>
 
 <style>
 
@@ -17,7 +19,7 @@
 body{
 margin:0;
 background:var(--cream);
-font-family:"PingFang TC", sans-serif;
+font-family:"PingFang TC",sans-serif;
 color:var(--deep);
 }
 
@@ -40,6 +42,7 @@ color:white;
 padding:10px 16px;
 border-radius:999px;
 cursor:pointer;
+font-size:14px;
 }
 
 #form{
@@ -50,23 +53,51 @@ padding:14px;
 border-radius:24px;
 }
 
-input,textarea{
+input,
+textarea{
 width:100%;
 padding:10px;
 margin:6px 0;
 border:none;
 border-radius:14px;
 background:#f3e5d3;
+box-sizing:border-box;
+}
+
+textarea{
+resize:none;
 }
 
 .card{
 background:var(--bar);
 border-radius:24px;
-margin-bottom:12px;
+margin:12px;
 padding:12px;
 display:flex;
 justify-content:space-between;
+align-items:flex-start;
 position:relative;
+gap:12px;
+}
+
+.info{
+flex:1;
+}
+
+.type{
+font-size:12px;
+opacity:0.8;
+margin-bottom:4px;
+}
+
+.info h3{
+margin:0;
+font-size:18px;
+}
+
+.info p{
+margin:4px 0;
+font-size:14px;
 }
 
 .img{
@@ -74,6 +105,7 @@ width:72px;
 height:72px;
 object-fit:cover;
 border-radius:18px;
+background:#eee;
 }
 
 .menu{
@@ -81,6 +113,7 @@ position:absolute;
 top:8px;
 right:10px;
 cursor:pointer;
+font-size:18px;
 }
 
 .dropdown{
@@ -91,12 +124,21 @@ right:10px;
 background:white;
 border-radius:14px;
 overflow:hidden;
+box-shadow:0 4px 10px rgba(0,0,0,0.1);
+z-index:10;
 }
 
 .dropdown div{
-padding:10px;
+padding:10px 14px;
 cursor:pointer;
+font-size:14px;
 }
+
+.dropdown div:hover{
+background:#f3e5d3;
+}
+
+/* picker */
 
 #picker{
 display:none;
@@ -105,13 +147,24 @@ inset:0;
 background:rgba(0,0,0,0.3);
 justify-content:center;
 align-items:center;
+z-index:999;
 }
 
 .box{
 background:var(--light);
-padding:20px;
-border-radius:20px;
+padding:22px;
+border-radius:24px;
 text-align:center;
+width:80%;
+max-width:320px;
+}
+
+.pick-grid{
+display:flex;
+flex-wrap:wrap;
+gap:10px;
+justify-content:center;
+margin-top:14px;
 }
 
 </style>
@@ -129,22 +182,27 @@ text-align:center;
 </div>
 
 <!-- FORM -->
+
 <div id="form">
 
 <input id="name" placeholder="餐廳名稱">
+
 <input id="addr" placeholder="地址">
+
 <textarea id="memo" placeholder="心得"></textarea>
 
 <div>
-<label><input type="radio" name="type" value="早餐">早餐</label>
-<label><input type="radio" name="type" value="午餐">午餐</label>
-<label><input type="radio" name="type" value="點心">點心</label>
-<label><input type="radio" name="type" value="晚餐">晚餐</label>
-<label><input type="radio" name="type" value="宵夜">宵夜</label>
+<label><input type="radio" name="type" value="早餐"> 早餐</label>
+<label><input type="radio" name="type" value="午餐"> 午餐</label>
+<label><input type="radio" name="type" value="點心"> 點心</label>
+<label><input type="radio" name="type" value="晚餐"> 晚餐</label>
+<label><input type="radio" name="type" value="宵夜"> 宵夜</label>
 </div>
 
 <input id="r1" placeholder="小玥評分">
+
 <input id="r2" placeholder="廖鑫鑫評分">
+
 <input type="file" id="img">
 
 <button onclick="add()">儲存</button>
@@ -152,25 +210,40 @@ text-align:center;
 </div>
 
 <!-- PICKER -->
+
 <div id="picker">
+
 <div class="box">
+
 <h3>今天想吃哪一餐？</h3>
 
+<div class="pick-grid">
+
 <button onclick="pick('早餐')">早餐</button>
+
 <button onclick="pick('午餐')">午餐</button>
+
 <button onclick="pick('點心')">點心</button>
+
 <button onclick="pick('晚餐')">晚餐</button>
+
 <button onclick="pick('宵夜')">宵夜</button>
+
 <button onclick="pick('全部')">全部</button>
 
 </div>
+
+</div>
+
 </div>
 
 <div id="list"></div>
 
 <script type="module">
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+import { initializeApp }
+from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+
 import {
 getFirestore,
 collection,
@@ -179,92 +252,161 @@ deleteDoc,
 doc,
 onSnapshot,
 updateDoc
-} from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+}
+from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
 /* Firebase */
+
 const firebaseConfig = {
+
 apiKey: "AIzaSyDCFwcRu5Stm8wD6X-XTHnLsQPl2AHzshs",
+
 authDomain: "foof-de011.firebaseapp.com",
+
 projectId: "foof-de011",
+
 storageBucket: "foof-de011.firebasestorage.app",
+
 messagingSenderId: "1099059447758",
+
 appId: "1:1099059447758:web:38e8fc613758967bce4d9f"
+
 };
 
 const app = initializeApp(firebaseConfig);
+
 const db = getFirestore(app);
 
+/* DOM */
+
 const form = document.getElementById("form");
+
 const list = document.getElementById("list");
+
 const picker = document.getElementById("picker");
 
+/* DATA */
+
 let data = [];
+
 let editId = null;
 
-/* realtime */
+/* realtime sync */
+
 onSnapshot(collection(db,"foods"),(snap)=>{
-data = snap.docs.map(d=>({id:d.id,...d.data()}));
+
+data = snap.docs.map(d=>({
+
+id:d.id,
+...d.data()
+
+}));
+
 render();
+
 });
 
-/* toggle */
+/* 開關表單 */
+
 window.toggleForm = ()=>{
-form.style.display = form.style.display==="block"?"none":"block";
+
+form.style.display =
+form.style.display==="block"
+? "none"
+: "block";
+
 };
 
-/* type */
+/* 取得分類 */
+
 function getType(){
-return document.querySelector('input[name="type"]:checked')?.value || "未分類";
+
+return document.querySelector(
+'input[name="type"]:checked'
+)?.value || "未分類";
+
 }
 
-/* ⭐ NEW：完整重置表單（重點修正） */
+/* 清空表單 */
+
 function resetForm(){
 
 document.getElementById("name").value = "";
+
 document.getElementById("addr").value = "";
+
 document.getElementById("memo").value = "";
+
 document.getElementById("r1").value = "";
+
 document.getElementById("r2").value = "";
+
 document.getElementById("img").value = "";
 
-document.querySelectorAll('input[name="type"]').forEach(r=>{
+document.querySelectorAll(
+'input[name="type"]'
+).forEach(r=>{
+
 r.checked = false;
+
 });
 
 editId = null;
 
 }
 
-/* ADD */
+/* 新增 */
+
 window.add = async ()=>{
 
 const item = {
-name: document.getElementById("name").value,
-addr: document.getElementById("addr").value,
-memo: document.getElementById("memo").value,
-r1: document.getElementById("r1").value,
-r2: document.getElementById("r2").value,
-type: getType(),
+
+name:document.getElementById("name").value,
+
+addr:document.getElementById("addr").value,
+
+memo:document.getElementById("memo").value,
+
+r1:document.getElementById("r1").value,
+
+r2:document.getElementById("r2").value,
+
+type:getType(),
+
 img:""
+
 };
 
-const file = document.getElementById("img").files[0];
+const file =
+document.getElementById("img").files[0];
 
-const save = async (img)=>{
+const save = async(imgData)=>{
 
-item.img = img || "";
+item.img = imgData || "";
 
 if(editId){
-await updateDoc(doc(db,"foods",editId),item);
+
+await updateDoc(
+doc(db,"foods",editId),
+item
+);
+
 }else{
-await addDoc(collection(db,"foods"),item);
+
+await addDoc(
+collection(db,"foods"),
+item
+);
+
 }
 
-/* ⭐ 修正點：完全重置 */
 resetForm();
-toggleForm();
+
+form.style.display="none";
 
 };
+
+/* 圖片壓縮 */
 
 if(file){
 
@@ -272,86 +414,163 @@ const reader = new FileReader();
 
 reader.onload = e=>{
 
-const img = new Image();
+const image = new Image();
 
-img.onload = ()=>{
+image.onload = ()=>{
 
-const canvas = document.createElement("canvas");
-const ctx = canvas.getContext("2d");
+const canvas =
+document.createElement("canvas");
 
-const w = 500;
-canvas.width = w;
-canvas.height = img.height*(w/img.width);
+const ctx =
+canvas.getContext("2d");
 
-ctx.drawImage(img,0,0,canvas.width,canvas.height);
+const maxWidth = 500;
 
-save(canvas.toDataURL("image/jpeg",0.7));
+const scale =
+maxWidth / image.width;
+
+canvas.width = maxWidth;
+
+canvas.height =
+image.height * scale;
+
+ctx.drawImage(
+image,
+0,
+0,
+canvas.width,
+canvas.height
+);
+
+const compressed =
+canvas.toDataURL(
+"image/jpeg",
+0.7
+);
+
+save(compressed);
 
 };
 
-img.src = e.target.result;
+image.src = e.target.result;
 
 };
 
 reader.readAsDataURL(file);
 
 }else{
+
 save("");
+
 }
 
 };
 
-/* delete */
-window.del = async (id)=>{
-await deleteDoc(doc(db,"foods",id));
+/* 刪除 */
+
+window.del = async(id)=>{
+
+await deleteDoc(
+doc(db,"foods",id)
+);
+
 };
 
-/* edit */
+/* 編輯 */
+
 window.edit = (i)=>{
+
 const it = data[i];
+
 editId = it.id;
 
 document.getElementById("name").value = it.name;
+
 document.getElementById("addr").value = it.addr;
+
 document.getElementById("memo").value = it.memo;
+
 document.getElementById("r1").value = it.r1;
+
 document.getElementById("r2").value = it.r2;
 
-document.querySelectorAll('input[name="type"]').forEach(r=>{
-r.checked = r.value === it.type;
+document.querySelectorAll(
+'input[name="type"]'
+).forEach(r=>{
+
+r.checked =
+r.value === it.type;
+
 });
 
-toggleForm();
+form.style.display="block";
+
 };
 
 /* render */
+
 function render(){
 
 list.innerHTML="";
 
 data.forEach((i,index)=>{
 
-const div=document.createElement("div");
+const div =
+document.createElement("div");
+
 div.className="card";
 
 div.innerHTML=`
-<div>
-<div style="font-size:12px;opacity:0.8;">🍽 ${i.type || "未分類"}</div>
+
+<div class="info">
+
+<div class="type">
+🍽 ${i.type || "未分類"}
+</div>
+
 <h3>${i.name}</h3>
-<p>${i.addr}</p>
-<p>小玥 ⭐ ${i.r1||"—"}</p>
-<p>廖鑫鑫 ⭐ ${i.r2||"—"}</p>
+
+<p>📍 ${i.addr}</p>
+
+<p>
+⭐ 小玥：${i.r1 || "—"}
+</p>
+
+<p>
+⭐ 廖鑫鑫：${i.r2 || "—"}
+</p>
+
 <p>${i.memo}</p>
+
 </div>
 
-<img class="img" src="${i.img||""}">
+<img
+class="img"
+src="${i.img || ""}"
+>
 
-<div class="menu" onclick="toggleMenu(${index})">⋯</div>
-
-<div class="dropdown" id="m${index}">
-<div onclick="edit(${index})">編輯</div>
-<div onclick="del('${i.id}')">刪除</div>
+<div
+class="menu"
+onclick="toggleMenu(${index})"
+>
+⋯
 </div>
+
+<div
+class="dropdown"
+id="m${index}"
+>
+
+<div onclick="edit(${index})">
+編輯
+</div>
+
+<div onclick="del('${i.id}')">
+刪除
+</div>
+
+</div>
+
 `;
 
 list.appendChild(div);
@@ -361,32 +580,63 @@ list.appendChild(div);
 }
 
 /* menu */
+
 window.toggleMenu=(i)=>{
-const el=document.getElementById("m"+i);
-el.style.display=el.style.display==="block"?"none":"block";
+
+document.querySelectorAll(
+".dropdown"
+).forEach(el=>{
+
+el.style.display="none";
+
+});
+
+const el =
+document.getElementById("m"+i);
+
+el.style.display =
+el.style.display==="block"
+? "none"
+: "block";
+
 };
 
-/* picker */
+/* 吃什麼 */
+
 window.openPicker=()=>{
+
 picker.style.display="flex";
+
 };
 
 window.pick=(type)=>{
 
 picker.style.display="none";
 
-let pool = type==="全部"
+let pool =
+type==="全部"
 ? data
 : data.filter(i=>i.type===type);
 
 if(pool.length===0){
-alert("沒有資料");
+
+alert("這類還沒有餐廳");
+
 return;
+
 }
 
-const r = pool[Math.floor(Math.random()*pool.length)];
+const r =
+pool[
+Math.floor(
+Math.random()*pool.length
+)
+];
 
-alert("🍴 今天吃："+r.name+"\n📍 "+r.addr);
+alert(
+"🍴 今天吃："+r.name+
+"\n📍 "+r.addr
+);
 
 };
 
