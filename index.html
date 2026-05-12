@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>☆.。小玥的好吃好吃口袋名單 ☆.。</title>
+<title>小玥的好吃好吃口袋名單</title>
 
 <style>
 
@@ -181,8 +181,9 @@ onSnapshot,
 updateDoc
 } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
+/* Firebase */
 const firebaseConfig = {
-apiKey: "AIzaSyDCFwcRu5Stm8dW6X-XTHnLsQPl2AHzshs",
+apiKey: "AIzaSyDCFwcRu5Stm8wD6X-XTHnLsQPl2AHzshs",
 authDomain: "foof-de011.firebaseapp.com",
 projectId: "foof-de011",
 storageBucket: "foof-de011.firebasestorage.app",
@@ -193,42 +194,51 @@ appId: "1:1099059447758:web:38e8fc613758967bce4d9f"
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+/* DOM */
 const form = document.getElementById("form");
 const list = document.getElementById("list");
 const picker = document.getElementById("picker");
 
+/* DATA */
 let data = [];
 let editId = null;
 
+/* realtime sync */
 onSnapshot(collection(db,"foods"),(snap)=>{
 data = snap.docs.map(d=>({id:d.id,...d.data()}));
 render();
 });
 
+/* toggle */
 window.toggleForm = ()=>{
 form.style.display = form.style.display==="block"?"none":"block";
 };
 
+/* type */
 function getType(){
 return document.querySelector('input[name="type"]:checked')?.value || "未分類";
 }
 
+/* ADD */
 window.add = async ()=>{
 
+try{
+
 const item = {
-name:name.value,
-addr:addr.value,
-memo:memo.value,
-r1:r1.value,
-r2:r2.value,
-type:getType(),
+name: document.getElementById("name").value,
+addr: document.getElementById("addr").value,
+memo: document.getElementById("memo").value,
+r1: document.getElementById("r1").value,
+r2: document.getElementById("r2").value,
+type: getType(),
 img:""
 };
 
-const file = img.files[0];
+const file = document.getElementById("img").files[0];
 
-const save = async (imgData)=>{
-item.img = imgData || "";
+const save = async (img)=>{
+
+item.img = img || "";
 
 if(editId){
 await updateDoc(doc(db,"foods",editId),item);
@@ -239,31 +249,34 @@ await addDoc(collection(db,"foods"),item);
 
 form.reset();
 toggleForm();
+
 };
 
 if(file){
 
-const reader=new FileReader();
+const reader = new FileReader();
 
-reader.onload=e=>{
-const image=new Image();
+reader.onload = e=>{
 
-image.onload=()=>{
+const img = new Image();
 
-const canvas=document.createElement("canvas");
-const ctx=canvas.getContext("2d");
+img.onload = ()=>{
 
-const w=500;
-canvas.width=w;
-canvas.height=image.height*(w/image.width);
+const canvas = document.createElement("canvas");
+const ctx = canvas.getContext("2d");
 
-ctx.drawImage(image,0,0,canvas.width,canvas.height);
+const w = 500;
+canvas.width = w;
+canvas.height = img.height*(w/img.width);
+
+ctx.drawImage(img,0,0,canvas.width,canvas.height);
 
 save(canvas.toDataURL("image/jpeg",0.7));
 
 };
 
-image.src=e.target.result;
+img.src = e.target.result;
+
 };
 
 reader.readAsDataURL(file);
@@ -272,30 +285,37 @@ reader.readAsDataURL(file);
 save("");
 }
 
+}catch(err){
+console.error(err);
+alert("儲存失敗，請看 console");
+}
+
 };
 
-window.del=async(id)=>{
+/* delete */
+window.del = async (id)=>{
 await deleteDoc(doc(db,"foods",id));
 };
 
-window.edit=(i)=>{
-const it=data[i];
-editId=it.id;
+/* edit */
+window.edit = (i)=>{
+const it = data[i];
+editId = it.id;
 
-name.value=it.name;
-addr.value=it.addr;
-memo.value=it.memo;
-r1.value=it.r1;
-r2.value=it.r2;
+document.getElementById("name").value = it.name;
+document.getElementById("addr").value = it.addr;
+document.getElementById("memo").value = it.memo;
+document.getElementById("r1").value = it.r1;
+document.getElementById("r2").value = it.r2;
 
 document.querySelectorAll('input[name="type"]').forEach(r=>{
-r.checked=r.value===it.type;
+r.checked = r.value === it.type;
 });
 
 toggleForm();
 };
 
-/* ⭐ ONLY CHANGE: 類別顯示加在 bar 上面 */
+/* render */
 function render(){
 
 list.innerHTML="";
@@ -307,7 +327,6 @@ div.className="card";
 
 div.innerHTML=`
 <div>
-<div style="font-size:12px;opacity:0.8;">🍽 ${i.type || "未分類"}</div>
 <h3>${i.name}</h3>
 <p>${i.addr}</p>
 <p>小玥 ⭐ ${i.r1||"—"}</p>
@@ -331,12 +350,13 @@ list.appendChild(div);
 
 }
 
+/* menu */
 window.toggleMenu=(i)=>{
 const el=document.getElementById("m"+i);
 el.style.display=el.style.display==="block"?"none":"block";
 };
 
-/* ⭐ ONLY CHANGE: 轉盤先選類別 */
+/* picker */
 window.openPicker=()=>{
 picker.style.display="flex";
 };
@@ -345,9 +365,11 @@ window.pick=(type)=>{
 
 picker.style.display="none";
 
-let pool = type==="全部"
-? data
-: data.filter(i=>i.type===type);
+let pool = data;
+
+if(type!=="全部"){
+pool = data.filter(i=>i.type===type);
+}
 
 if(pool.length===0){
 alert("沒有資料");
