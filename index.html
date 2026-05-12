@@ -34,127 +34,149 @@ const db = getFirestore(app);
 
 let data = [];
 let editId = null;
-let pickTypeNow = null;
 
-/* ✦ 即時同步 */
+/* ✦ 讀取 Firebase（關鍵：不會消失） */
 onSnapshot(collection(db,"foods"),(snap)=>{
-data = snap.docs.map(d=>({id:d.id,...d.data()}));
+data = snap.docs.map(d => ({
+id: d.id,
+...d.data()
+}));
 render();
 });
 
-/* ✦ form */
-window.toggleForm=()=>{
-document.getElementById("form").style.display=
-document.getElementById("form").style.display==="block"?"none":"block";
-}
-
-/* ✦ type */
-function getType(){
-const t=document.querySelector('input[name="type"]:checked');
-return t?t.value:"未分類";
-}
-
-/* ✦ add */
-window.add=async()=>{
-
-const item={
-name:document.getElementById("name").value,
-addr:document.getElementById("addr").value,
-memo:document.getElementById("memo").value,
-r1:document.getElementById("r1").value,
-r2:document.getElementById("r2").value,
-type:getType(),
-img:""
+/* ✦ 開關表單 */
+window.toggleForm = ()=>{
+document.getElementById("form").style.display =
+document.getElementById("form").style.display==="block"
+? "none"
+: "block";
 };
 
-const file=document.getElementById("img").files[0];
+/* ✦ 取得分類 */
+function getType(){
+return document.querySelector('input[name="type"]:checked')?.value || "未分類";
+}
 
-const save=async(img)=>{
-item.img=img||"";
+/* ✦ 防重複送出 */
+let isSaving = false;
+
+/* ✦ 新增 / 編輯 */
+window.add = async ()=>{
+
+if(isSaving) return;
+isSaving = true;
+
+const btn = document.querySelector("#saveBtn");
+btn.disabled = true;
+
+const item = {
+name: document.getElementById("name").value,
+addr: document.getElementById("addr").value,
+memo: document.getElementById("memo").value,
+r1: document.getElementById("r1").value,
+r2: document.getElementById("r2").value,
+type: getType(),
+img: ""
+};
+
+const file = document.getElementById("img").files[0];
+
+const saveToFirebase = async (img)=>{
+
+item.img = img || "";
 
 if(editId){
 await updateDoc(doc(db,"foods",editId),item);
-editId=null;
+editId = null;
 }else{
 await addDoc(collection(db,"foods"),item);
 }
 
 document.getElementById("form").reset();
 toggleForm();
+
+btn.disabled = false;
+isSaving = false;
+
 };
 
 if(file){
 
-const reader=new FileReader();
+const reader = new FileReader();
 
-reader.onload=e=>{
-const img=new Image();
+reader.onload = e=>{
 
-img.onload=()=>{
+const img = new Image();
 
-const canvas=document.createElement("canvas");
-const ctx=canvas.getContext("2d");
+img.onload = ()=>{
 
-const w=500;
-canvas.width=w;
-canvas.height=img.height*(w/img.width);
+const canvas = document.createElement("canvas");
+const ctx = canvas.getContext("2d");
+
+const maxW = 500;
+canvas.width = maxW;
+canvas.height = img.height * (maxW/img.width);
 
 ctx.drawImage(img,0,0,canvas.width,canvas.height);
 
-save(canvas.toDataURL("image/jpeg",0.7));
+saveToFirebase(canvas.toDataURL("image/jpeg",0.7));
 
 };
 
-img.src=e.target.result;
+img.src = e.target.result;
+
 };
 
 reader.readAsDataURL(file);
 
 }else{
-save("");
+saveToFirebase("");
 }
 
-}
+};
 
-/* ✦ delete */
-window.del=async(id)=>{
+/* ✦ 刪除 */
+window.del = async (id)=>{
 await deleteDoc(doc(db,"foods",id));
-}
+};
 
-/* ✦ edit */
-window.edit=(i)=>{
-const it=data[i];
-editId=it.id;
+/* ✦ 編輯 */
+window.edit = (i)=>{
 
-document.getElementById("name").value=it.name;
-document.getElementById("addr").value=it.addr;
-document.getElementById("memo").value=it.memo;
-document.getElementById("r1").value=it.r1;
-document.getElementById("r2").value=it.r2;
+const it = data[i];
+editId = it.id;
+
+document.getElementById("name").value = it.name;
+document.getElementById("addr").value = it.addr;
+document.getElementById("memo").value = it.memo;
+document.getElementById("r1").value = it.r1;
+document.getElementById("r2").value = it.r2;
 
 document.querySelectorAll('input[name="type"]').forEach(r=>{
-r.checked=r.value===it.type;
+r.checked = r.value === it.type;
 });
 
 toggleForm();
-}
+};
 
 /* ✦ render */
 function render(){
 
-const list=document.getElementById("list");
-list.innerHTML="";
+const list = document.getElementById("list");
+list.innerHTML = "";
 
-const order=["早餐","午餐","點心","晚餐","宵夜","未分類"];
+const order = ["早餐","午餐","點心","晚餐","宵夜","未分類"];
 
-data.sort((a,b)=>order.indexOf(a.type)-order.indexOf(b.type));
+data.sort((a,b)=>
+order.indexOf(a.type) - order.indexOf(b.type)
+);
 
 data.forEach((i,index)=>{
 
-const div=document.createElement("div");
-div.className="card";
+const div = document.createElement("div");
+div.className = "card";
 
-div.innerHTML=`
+div.innerHTML = `
 <div>
 <div class="type">${i.type}</div>
 <h3>${i.name}</h3>
@@ -178,38 +200,39 @@ list.appendChild(div);
 });
 }
 
-window.toggleMenu=(i)=>{
-const el=document.getElementById("m"+i);
-el.style.display=el.style.display==="block"?"none":"block";
-}
+/* ✦ menu */
+window.toggleMenu = (i)=>{
+const el = document.getElementById("m"+i);
+el.style.display = el.style.display==="block" ? "none" : "block";
+};
 
-/* ✦ 🍽 吃什麼（新增分類選擇） */
-window.randomPick=()=>{
+/* ✦ 吃什麼（分類抽） */
+window.randomPick = ()=>{
 
-document.getElementById("pickBox").style.display="flex";
+document.getElementById("pickBox").style.display = "flex";
 
-}
+};
 
-window.chooseType=(type)=>{
+window.chooseType = (type)=>{
 
-document.getElementById("pickBox").style.display="none";
+document.getElementById("pickBox").style.display = "none";
 
 let pool = data;
 
-if(type!=="全部"){
-pool = data.filter(i=>i.type===type);
+if(type !== "全部"){
+pool = data.filter(i=>i.type === type);
 }
 
-if(pool.length===0){
+if(pool.length === 0){
 alert("這個分類沒有餐廳");
 return;
 }
 
 const r = pool[Math.floor(Math.random()*pool.length)];
 
-alert("今天吃："+r.name+"\n📍"+r.addr);
+alert("今天吃：" + r.name + "\n📍" + r.addr);
 
-}
+};
 
 </script>
 
@@ -301,7 +324,7 @@ font-size:12px;
 opacity:0.7;
 }
 
-/* ✦ 吃什麼選擇框 */
+/* ✦ 吃什麼選單 */
 #pickBox{
 display:none;
 position:fixed;
@@ -314,8 +337,7 @@ align-items:center;
 .pick{
 background:#fffaf4;
 padding:20px;
-border-radius:20px;
-text-align:center;
+border-radius:18px;
 display:flex;
 flex-direction:column;
 gap:10px;
@@ -358,13 +380,13 @@ width:200px;
 <input id="r2" placeholder="廖鑫鑫評分">
 <input type="file" id="img">
 
-<button onclick="add()">儲存</button>
+<button id="saveBtn" onclick="add()">儲存</button>
 
 </div>
 
 <div id="list"></div>
 
-<!-- ✦ 吃什麼分類選擇 -->
+<!-- ✦ 吃什麼分類 -->
 <div id="pickBox">
 <div class="pick">
 
